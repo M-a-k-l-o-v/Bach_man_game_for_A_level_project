@@ -756,9 +756,9 @@ class Player:
 
     def move_player(self):
         # r, l, u, d
-        if self.direction  == 0 and turns_allowed[0]:
+        if self.direction  == 0 and self.turns[0]:
             self.x_pos += player_speed
-        elif self.direction  == 1 and turns_allowed[1]:
+        elif self.direction  == 1 and self.turns[1]:
             self.x_pos -= player_speed
         if self.direction  == 2 and turns_allowed[2]:
             self.y_pos -= player_speed
@@ -766,8 +766,9 @@ class Player:
             self.y_pos += player_speed
         print(self.x_pos, self.y_pos)
         return self.x_pos, self.y_pos
+    
 
-# not sure this should be a class function (it should)
+# not sure this should be a class function (it should?)
     def get_targets(self,blink_x, blink_y, ink_x, ink_y, pink_x, pink_y, clyd_x, clyd_y):
         if self.x_pos < 450:
             runaway_x = 900

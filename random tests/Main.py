@@ -3,9 +3,15 @@ import copy
 import board
 import pygame
 import homescreen
-from game import center_x,center_y,player_x
-
+from game import *
+from game import pacman
+# from file1 import * 
+# this imports all methods and all objects
 pygame.init()
+
+
+player_x = pacman.x_pos
+player_y = pacman.y_pos
 
 while homescreen.running:
     homescreen.display_surface.blit(homescreen.background_img,homescreen.background_rect,)
@@ -42,7 +48,7 @@ while homescreen.game_running:
     else:
         game.counter = 0
         game.flicker = True
-    if game.powerup and game.game.power_counter < 600:
+    if game.powerup and game.power_counter < 600:
         game.power_counter += 1
     elif game.powerup and game.power_counter >= 600:
         game.power_counter = 0
@@ -93,11 +99,11 @@ while homescreen.game_running:
     game.inky.draw()
     game.clyde.draw()
     game.draw_misc()
-    player_circle = pygame.draw.circle(game.screen, 'black', (center_x, center_y), 20, 1)
+    player_circle = pygame.draw.circle(game.screen, 'black', (pacman.center_x, pacman.center_y), 20, 1)
 
     #targets = game.get_targets(blinky_x, blinky_y, inky_x, inky_y, pinky_x, pinky_y, clyde_x, clyde_y)
 
-    game.turns_allowed = game.pacman.check_position()
+    
     if game.moving:
         player_x, player_y = game.pacman.move_player()
         if not game.blinky_dead and not game.blinky.in_box:
@@ -345,14 +351,14 @@ while homescreen.game_running:
             if event.key == pygame.K_DOWN and game.direction_command == 3:
                 game.direction_command = game.direction
 
-    if game.direction_command == 0 and game.turns_allowed[0]:
-        game.direction = 0
-    if game.direction_command == 1 and game.turns_allowed[1]:
-        game.direction = 1
-    if game.direction_command == 2 and game.turns_allowed[2]:
-        game.direction = 2
-    if game.direction_command == 3 and game.turns_allowed[3]:
-        game.direction = 3
+    if game.direction_command == 0 and pacman.turns[0]:
+        pacman.direction = 0
+    if game.direction_command == 1 and pacman.turns[1]:
+        pacman.direction = 1
+    if game.direction_command == 2 and pacman.turns[2]:
+        pacman.direction = 2
+    if game.direction_command == 3 and pacman.turns[3]:
+        pacman.direction = 3
 
     if player_x > 900:
         player_x = -47
