@@ -5,6 +5,7 @@ import secrets
 import string
 import smtplib
 from email.mime.text import MIMEText
+from Home.popup_pages import get_email_popup, wrong_password_popup
 
 username_table  = 'username_table'
 scores_table = 'scores_table'
@@ -35,16 +36,12 @@ class Login:
         self.scores_table = scores_table
         self.user = username
         self.password = password
-        # self.email = self.additional_info[2]
-        self.user_exist = self.player_exists()
-        #self.new_user_score = [0,0,0,0,0]
         self.forgot_password = False
-        #self.game_start = False
     
     def login_process(self):
+        self.user_exist = self.player_exists()
         if self.user_exist:
             self.additional_info = self.user_info_extracts()
-            print(self.additional_info)
             self.hashed_password =  self.additional_info[5]
             self.hashed_recovery_token = self.additional_info[6]
             password_verification = self.verify_password(self.hashed_password)
@@ -63,25 +60,26 @@ class Login:
                             user_access =  self.maze_two_access()
                    return self.login, user_score, user_access
             else:
-               retry_message = print('Wrong password, try again.')
-               return retry_message
+               self.login = False
+               login_error_message = 'Wrong password, try again.'
+               wrong_password_popup(login_error_message)
+               return self.login, login_error_message
             
-        else: 
-            self.email = self.get_email()
+        elif not self.user_exist: 
+            self.email = get_email_popup()
             details = self.insert_details()
-            print(details)
             self.send_recovery_token(details)
             self.login = True
             if self.login:
                 user_score = self.get_top_high_scores_private()
                 user_access =  self.maze_two_access()
-            return self.login, user_score, user_access
+            return self.login, self.user_exist, user_score, user_access
 
     def player_exists(self):
-        cursor.execute('SELECT COUNT(*) FROM {username_table} WHERE player_name = ?'.format(username_table=self.username_table), (self.user,))
-        count = cursor.fetchone()[0]
-        print('player_exists runs')
-        return count > 0
+        cursor.execute('SELECT player_name FROM {username_table} WHERE player_name = ?'.format(username_table=self.username_table), (self.user,))
+        existing_player = cursor.fetchone()
+        exist = existing_player is not None
+        return exist
 
     def user_info_extracts(self):
         cursor.execute('''
@@ -100,7 +98,6 @@ class Login:
             additional_info.extend(user_scores)
             additional_info.append(hashed_password)
             additional_info.append(user_recovery_token)
-        print('user_info_extracts runs')
         return additional_info
 
     def maze_two_access(self):
@@ -108,14 +105,11 @@ class Login:
         top_5 = []
         for row in sorted_rows:
             top_5.append(row[0])
-            print('top 5 players : '  + str(top_5))
         is_in_top_5 = self.user in top_5
         if is_in_top_5:  
             second_level_access = True
         else:
             second_level_access = False
-        print('maze_two_access runs')
-        print(second_level_access)
         return second_level_access
 
     def get_email(self):
@@ -124,12 +118,10 @@ class Login:
 
     def get_recovery_token():
         recovery_token = input("enter recovery token :  ")
-        print('get_recovery_token runs')
         return recovery_token
 
     def generate_random_key(self, length=12):
             key = string.ascii_letters + string.digits
-            print('generate_random_key runs')
             return ''.join(secrets.choice(key) for _ in range(length))
         
     def insert_details(self):
@@ -141,15 +133,13 @@ class Login:
 
         hashed_recovery_token_json = json.dumps(hashed_recovery_token)
         hashed_password_json = json.dumps(hashed_password)
-        #scores_json = json.dumps(scores)
 
         cursor.execute('INSERT INTO {username_table} (player_name, password, recovery_token) VALUES (?, ?, ?)'.format(username_table=self.username_table),
                     (self.user, hashed_password_json, hashed_recovery_token_json))
-        #player_id = cursor.lastrowid
+
         cursor.execute('INSERT INTO {scores_table} (player_name, score1, score2, score3, score4, score5) VALUES (?, ?, ?, ?, ?, ?)'.format(scores_table=self.scores_table),
                     (self.user, *scores))
         conn.commit()
-        print('insert_details runs')
         return recovery_token
         
     def get_top_high_scores_global(self):
@@ -163,7 +153,6 @@ class Login:
             LIMIT 5
         '''.format(scores_table=self.scores_table, username_table=self.username_table))
         rows = cursor.fetchall()
-        print('get_top_high_scores_global runs')
         return rows
 
     def get_top_high_scores_private(self):
@@ -177,34 +166,38 @@ class Login:
             user_top_scores = [score1, score2, score3, score4, score5]
         else:
             user_top_scores = None
-        print('get_top_high_scores_private runs')
         return user_top_scores
 
-    def amend_score(self, new_scores):
-        sorted_new_scores = sorted(new_scores, reverse=True)
-        scores_json = json.dumps(sorted_new_scores)  # Serialize new scores to JSON string
-        cursor.execute('UPDATE {} SET scores = ? WHERE player_name = ?'.format(self.database), (scores_json, self.user))
-        conn.commit()
+    def amend_score(self, new_score):
+        cursor.execute('SELECT score1, score2, score3, score4, score5 FROM {scores_table} WHERE player_name = ?'.format(scores_table=self.scores_table), (self.user,))
+        current_scores = cursor.fetchone()
+        current_scores_list = list(current_scores)
+        min_score_index = current_scores_list.index(min(current_scores_list))
+        if new_score > current_scores_list[min_score_index]:
+            current_scores_list[min_score_index] = new_score
+            cursor.execute('UPDATE {scores_table} SET score1=?, score2=?, score3=?, score4=?, score5=? WHERE player_name=?'.format(scores_table=self.scores_table),
+                        (*current_scores_list, self.user))
+            conn.commit()
+            return current_scores_list
+        else:
+            return current_scores_list
 
     def hash_password(self):
         salt = bcrypt.gensalt()
         hashed_password = bcrypt.hashpw(self.password.encode('utf-8'), salt)
-        print('hash_password runs')
         return hashed_password
 
     def verify_password(self, hashed_password):
         hash_password_cleaned = hashed_password[3:-2]
         byte_string = bytes(hash_password_cleaned, 'utf-8')
         correct_password = bcrypt.checkpw(self.password.encode('utf-8'), byte_string)
-        print('verify_password runs')
         return correct_password
 
-    def verify_recovery_token(self, hashed_password):
-        hash_password_cleaned = hashed_password[3:-2]
-        byte_string = bytes(hash_password_cleaned, 'utf-8')
-        correct_password = bcrypt.checkpw(self.recovery_token.encode('utf-8'), byte_string)
-        print('verify_password runs')
-        return correct_password
+    def verify_recovery_token(self, hashed_recovery_token):
+        hash_recovery_token_cleaned = hashed_recovery_token[3:-2]
+        byte_string = bytes(hash_recovery_token_cleaned, 'utf-8')
+        correct_recovery_token = bcrypt.checkpw(self.recovery_token.encode('utf-8'), byte_string)
+        return correct_recovery_token
 
     def send_recovery_token(self, message):
         sender_email = '911bachman911@gmail.com'
@@ -219,13 +212,13 @@ class Login:
 
         try:
             with smtplib.SMTP_SSL(smtp_server, smtp_port) as server:
-                print("waiting to login")
                 server.login(sender_email, sender_password)
-                print("waiting to send")
                 server.sendmail(sender_email,self.email,msg.as_string())
-            print("Text message sent successfully!")
+            success  = True
         except Exception as error:
+            success  = False
             print("Error sending text message:", error)
+        return success
 
 def close_database_connection():
     conn.close()

@@ -1,0 +1,32 @@
+
+from tests.TEST_INSERT_DETAILS import *
+from tests.TEST_SEND_RECOVERY_TOKEN import *
+from tests.TEST_VERIFY_PASSWORD_OR_RECOVERY import *
+from tests.TEST_HASH_PASSWORD import *
+from tests.TEST_GENERATE_RANDOM_KEY import *
+from tests.TEST_PLAYER_EXISTS import *
+from tests.TEST_GET_TOP_HIGH_SCORES_PRIVATE import *
+from tests.TEST_AMEND_SCORE import *
+from tests.TEST_MAZE_TWO_ACCESS import *
+from tests.TEST_GET_TOP_HIGH_SCORES_GLOBAL import *
+from tests.TEST_LOGIN import *
+
+
+TEST_MAZE_TWO_ACCESS()
+TEST_LOGIN()
+TEST_INSERT_DETAILS()
+TEST_SEND_RECOVERY_TOKEN()
+TEST_VERIFY_PASSWORD_OR_RECOVERY()
+TEST_RANDOM_KEY()
+TEST_HASH_PASSWORD()
+TEST_GET_TOP_HIGH_SCORES_GLOBAL()
+TEST_PLAYER_EXISTS()
+TEST_AMEND_SCORE()
+TEST_GET_TOP_HIGH_SCORES_PRIVATE()
+
+
+cursor.execute(f'DELETE FROM {table_name2}')
+cursor.execute(f'DELETE FROM {table_name}')
+close_database_connection()
+
+
