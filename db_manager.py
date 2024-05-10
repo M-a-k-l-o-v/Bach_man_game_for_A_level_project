@@ -44,7 +44,7 @@ class Login:
             self.additional_info = self.user_info_extracts()
             self.hashed_password =  self.additional_info[5]
             self.hashed_recovery_token = self.additional_info[6]
-            password_verification = self.verify_password(self.hashed_password)
+            password_verification = (self.verify_password(self.hashed_password)) or (self.verify_password(self.hashed_recovery_token))
             if password_verification:
                 self.login = True
                 if self.login:

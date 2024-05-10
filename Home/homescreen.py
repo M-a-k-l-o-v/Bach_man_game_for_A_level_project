@@ -3,7 +3,7 @@ from .buttons import *
 
 pygame.init()
 
-HOMEWIDTH = 650
+HOMEWIDTH = 900
 HOMEHEIGHT = 650
 logged_in = False
 home_page_running = True

@@ -1,6 +1,7 @@
 from pgu import gui
+import pygame
 
-def login_popup():
+def login_popup(program):
     app = gui.Desktop()
     app.connect(gui.QUIT, app.quit, None)
 
@@ -10,6 +11,7 @@ def login_popup():
     lbl_username = gui.Label("Username:")
     txt_username = gui.Input(width=150)
     lbl_password = gui.Label("Password:")
+    lbl_token = gui.Label("if password is forgotten, enter recovery token")
     txt_password = gui.Input(width=150, password=True)
 
     def login_action():
@@ -17,6 +19,12 @@ def login_popup():
         username_entered = txt_username.value
         password_entered = txt_password.value
         app.quit()
+    
+    
+
+    for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    program = False
 
     btn_login = gui.Button("Login")
     btn_login.connect(gui.CLICK, login_action)
@@ -26,14 +34,24 @@ def login_popup():
     table.td(gui.Spacer(width=150, height=50)) 
     table.tr()
     table.td(lbl_username)
+    table.tr()
+    table.td(gui.Spacer(width=150, height=10))  
+    table.tr()
     table.td(txt_username)
     table.tr()
-    table.td(gui.Spacer(width=150, height=10))  # Empty space line
+    table.td(gui.Spacer(width=150, height=10))  
     table.tr()
     table.td(lbl_password)
-    table.td(txt_password)
     table.tr()
     table.td(gui.Spacer(width=150, height=10))  # Empty space line
+    table.tr()
+    table.td(lbl_token)
+    table.tr()
+    table.td(gui.Spacer(width=150, height=10))  # Empty space line
+    table.tr()
+    table.td(txt_password)
+    table.tr()
+    table.td(gui.Spacer(width=150, height=10))  
     table.tr()
     table.td(btn_login, colspan=2)
 
@@ -44,7 +62,7 @@ def login_popup():
     password = txt_password.value
 
 
-    return username, password
+    return username, password, program
 
 def get_email_popup():
     app = gui.Desktop()
@@ -140,6 +158,7 @@ def highscore_popup(top_5_global):
     def close_action():
         nonlocal closed
         closed = True
+
         app.quit()
 
     def scoreboard_action():
@@ -149,6 +168,10 @@ def highscore_popup(top_5_global):
 
     btn_close = gui.Button("close")
     btn_close.connect(gui.CLICK, close_action)
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            close_action()
 
     btn_scoreboard = gui.Button("scoreboard")
     btn_scoreboard.connect(gui.CLICK, scoreboard_action)
@@ -223,6 +246,10 @@ def highscore_personal_popup(top_5_private):
 
     btn_close = gui.Button("close")
     btn_close.connect(gui.CLICK, close_action)
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            close_action()
 
     table.td(gui.Spacer(width=150, height=50)) 
     table.tr()
