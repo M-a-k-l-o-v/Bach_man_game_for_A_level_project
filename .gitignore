@@ -1,2 +1,7 @@
 __pycache__/
-
+*.pyc
+.DS_Store
+# Local game database: created on first run, holds players' hashed passwords
+game_data.db
+.env
+tadashi CV (GOALS).pdf

@@ -3,6 +3,7 @@ import json
 import bcrypt
 import secrets
 import string
+import os
 import smtplib
 from email.mime.text import MIMEText
 from Home.popup_pages import get_email_popup, wrong_password_popup
@@ -200,8 +201,9 @@ class Login:
         return correct_recovery_token
 
     def send_recovery_token(self, message):
-        sender_email = '911bachman911@gmail.com'
-        sender_password = 'zpbv mywa qzlq furx'
+        # Credentials come from the environment; never commit them.
+        sender_email = os.environ.get('BACHMAN_SMTP_USER', '')
+        sender_password = os.environ.get('BACHMAN_SMTP_PASSWORD', '')
         smtp_server = 'smtp.gmail.com'
         smtp_port = 465
 
